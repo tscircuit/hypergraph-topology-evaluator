@@ -45,11 +45,13 @@ export type SimpleRouteObstacle = {
 
 export type SimpleRouteConnection = {
   name: string
+  source_trace_id?: string
   rootConnectionName?: string
   mergedConnectionNames?: string[]
   isOffBoard?: boolean
   netConnectionName?: string
   nominalTraceWidth?: number
+  width?: number
   pointsToConnect: ConnectionPoint[]
   externallyConnectedPointIds?: string[][]
 }
@@ -95,6 +97,11 @@ export type SimplifiedPcbTrace = {
 }
 
 export type SimpleRouteJson = {
+  id?: string
+  sourceCircuitJson?: string
+  sourceKicadPcb?: string
+  sourceName?: string
+  sourceUrl?: string
   layerCount: number
   minTraceWidth: number
   nominalTraceWidth?: number
@@ -109,15 +116,17 @@ export type SimpleRouteJson = {
   connections: SimpleRouteConnection[]
   bounds: { minX: number; maxX: number; minY: number; maxY: number }
   outline?: Array<{ x: number; y: number }>
-  traces?: SimplifiedPcbTrace[]
-  jumpers?: Array<{
-    jumper_footprint: "0603" | "1206x4"
-    center: { x: number; y: number }
-    orientation: "horizontal" | "vertical"
-    width: number
-    height: number
-    pads: SimpleRouteObstacle[]
-  }>
+  traces?: SimplifiedPcbTrace[] | unknown[]
+  jumpers?:
+    | Array<{
+        jumper_footprint: "0603" | "1206x4"
+        center: { x: number; y: number }
+        orientation: "horizontal" | "vertical"
+        width: number
+        height: number
+        pads: SimpleRouteObstacle[]
+      }>
+    | unknown[]
   allowJumpers?: boolean
   availableJumperTypes?: Array<"1206x4" | "0603">
 }

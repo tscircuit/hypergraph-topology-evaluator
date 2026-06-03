@@ -17,7 +17,8 @@ test("visualizes SimpleRouteJson over a SerializedHyperGraph", () => {
   expect(graphics.title).toBe("SimpleRouteJson over SerializedHyperGraph")
   expect(graphics.rects?.length).toBeGreaterThanOrEqual(4)
   expect(graphics.lines?.length).toBeGreaterThanOrEqual(3)
-  expect(graphics.circles?.length).toBeGreaterThanOrEqual(2)
+  expect(graphics.points?.length).toBeGreaterThanOrEqual(4)
+  expect(graphics.circles?.length ?? 0).toBe(0)
 
   const svg = getSvgFromGraphicsObject(graphics)
   expect(svg).toContain("svg")

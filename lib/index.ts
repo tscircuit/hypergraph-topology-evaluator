@@ -1,4 +1,9 @@
 export {
+  type GeneratePipeline7TopologyOptions,
+  generatePipeline7Topology,
+  type Pipeline7TopologyGenerationResult,
+} from "./generate-pipeline7-topology"
+export {
   type HypergraphTopologyEvaluatorInput,
   type HypergraphTopologyEvaluatorOutput,
   HypergraphTopologyEvaluatorSolver,

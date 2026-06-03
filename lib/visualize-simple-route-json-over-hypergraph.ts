@@ -18,12 +18,23 @@ type UnknownRecord = Record<string, unknown>
 export type HypergraphRouteOverlayInput = {
   hypergraph: SerializedHyperGraph
   simpleRouteJson: SimpleRouteJson
+  inputGraphics?: GraphicsObject
+  topologyGraphics?: GraphicsObject
 }
 
-export const visualizeSimpleRouteJsonOverHypergraph = ({
-  hypergraph,
-  simpleRouteJson,
-}: HypergraphRouteOverlayInput): GraphicsObject => {
+export const visualizeSimpleRouteJsonOverHypergraph = (
+  input: HypergraphRouteOverlayInput,
+): GraphicsObject => {
+  const { hypergraph, simpleRouteJson, inputGraphics, topologyGraphics } = input
+
+  if (inputGraphics || topologyGraphics) {
+    return combineGraphicsObjects(
+      "Pipeline7 SimpleRouteJson + TinyHyperGraph topology",
+      topologyGraphics,
+      inputGraphics,
+    )
+  }
+
   const graphGraphics = getHypergraphGraphics(
     hypergraph,
     simpleRouteJson.bounds,
@@ -31,6 +42,9 @@ export const visualizeSimpleRouteJsonOverHypergraph = ({
   const routeGraphics = convertSrjToGraphicsObject(
     simpleRouteJson as any,
   ) as Partial<GraphicsObject>
+  const routeCirclePoints = (routeGraphics.circles ?? []).map((circle) =>
+    circleToPoint(circle, 1),
+  )
   const bounds = getOverlayBounds(hypergraph, simpleRouteJson.bounds)
   const textY = bounds.maxY + getScale(bounds) * 0.6
 
@@ -53,8 +67,12 @@ export const visualizeSimpleRouteJsonOverHypergraph = ({
         : []),
     ],
     lines: [...graphGraphics.lines, ...(routeGraphics.lines ?? [])],
-    circles: [...graphGraphics.circles, ...(routeGraphics.circles ?? [])],
-    points: [...graphGraphics.points, ...(routeGraphics.points ?? [])],
+    circles: [],
+    points: [
+      ...graphGraphics.points,
+      ...(routeGraphics.points ?? []),
+      ...routeCirclePoints,
+    ],
     texts: [
       ...graphGraphics.texts,
       ...(routeGraphics.texts ?? []),
@@ -69,6 +87,74 @@ export const visualizeSimpleRouteJsonOverHypergraph = ({
     ],
   }
 }
+
+const graphicsArrayKeys = [
+  "rects",
+  "polygons",
+  "lines",
+  "circles",
+  "points",
+  "texts",
+] as const
+
+const combineGraphicsObjects = (
+  title: string,
+  ...graphicsObjects: Array<GraphicsObject | undefined>
+): GraphicsObject => {
+  const combined: GraphicsObject = {
+    coordinateSystem: "cartesian",
+    title,
+    circles: [],
+  }
+
+  for (const [step, graphicsObject] of graphicsObjects.entries()) {
+    if (!graphicsObject) continue
+
+    if (graphicsObject.circles?.length) {
+      const combinedPoints = (combined.points ?? []) as unknown as Array<
+        Record<string, unknown>
+      >
+      combinedPoints.push(
+        ...graphicsObject.circles.map((circle) => circleToPoint(circle, step)),
+      )
+      ;(combined as unknown as { points: typeof combinedPoints }).points =
+        combinedPoints
+    }
+
+    for (const key of graphicsArrayKeys) {
+      if (key === "circles") continue
+
+      const items = graphicsObject[key]
+      if (!items?.length) continue
+
+      const combinedItems = (combined[key] ?? []) as unknown as Array<
+        Record<string, unknown>
+      >
+      combinedItems.push(
+        ...items.map((item) => ({
+          ...item,
+          step: (item as { step?: number }).step ?? step,
+        })),
+      )
+      ;(combined as unknown as Record<typeof key, typeof combinedItems>)[key] =
+        combinedItems
+    }
+  }
+
+  return combined
+}
+
+const circleToPoint = (circle: Circle, step: number) => ({
+  x: circle.center.x,
+  y: circle.center.y,
+  color:
+    circle.stroke && circle.stroke !== "none"
+      ? circle.stroke
+      : (circle.fill ?? "rgba(80, 80, 80, 0.25)"),
+  layer: circle.layer,
+  label: circle.label,
+  step,
+})
 
 const getHypergraphGraphics = (
   hypergraph: SerializedHyperGraph,
@@ -164,11 +250,9 @@ const getHypergraphGraphics = (
     }
 
     if (portCenter) {
-      circles.push({
-        center: portCenter,
-        radius: scale * 0.07,
-        fill: "#ffffff",
-        stroke: "#334155",
+      points.push({
+        ...portCenter,
+        color: "#334155",
         label: port.portId,
       })
     }

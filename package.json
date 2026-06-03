@@ -31,6 +31,7 @@
     "@tscircuit/capacity-autorouter": "^0.0.567",
     "@tscircuit/hypergraph": "^0.0.73",
     "@tscircuit/solver-utils": "^0.0.19",
+    "dataset-srj18": "github:tscircuit/dataset-srj18",
     "graphics-debug": "^0.0.95"
   }
 }

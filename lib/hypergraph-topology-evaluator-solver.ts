@@ -7,6 +7,8 @@ import { visualizeSimpleRouteJsonOverHypergraph } from "./visualize-simple-route
 export type HypergraphTopologyEvaluatorInput = {
   hypergraph: SerializedHyperGraph
   simpleRouteJson: SimpleRouteJson
+  inputGraphics?: GraphicsObject
+  topologyGraphics?: GraphicsObject
 }
 
 export type HypergraphTopologyEvaluatorOutput = {
